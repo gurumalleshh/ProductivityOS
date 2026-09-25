@@ -1,0 +1,36 @@
+{
+  "name": "productivityos",
+  "version": "1.0.0",
+  "description": "A professional personal productivity desktop application for tracking daily goals, time, habits, streaks, analytics, and lifetime progress.",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"vite --port=3000 --host=localhost\" \"wait-on http://localhost:3000 && electron .\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "dist": "npm run build && electron-builder",
+    "lint": "tsc --noEmit"
+  },
+  "build": {
+    "appId": "com.productivityos.app",
+    "productName": "ProductivityOS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

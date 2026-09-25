@@ -1,0 +1,6 @@
+{
+  "name": "Productivity OS",
+  "description": "A lifetime personal productivity operating system and analytics dashboard for tracking daily targets, streaks, and cumulative growth in Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
