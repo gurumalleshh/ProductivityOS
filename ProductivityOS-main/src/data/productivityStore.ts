@@ -149,7 +149,7 @@ export function computeDailyRecord(
 ): DailyRecord {
   const { week, year, dayName, monthStr } = getISOWeek(dateStr);
 
-  const activeDisciplines = settings.disciplines.filter((d) => d.isActive !== false);
+  const activeDisciplines = settings.disciplines.filter((d) => d.isActive !== false && !d.isArchived);
   const dailyDisciplines = activeDisciplines.filter((d) => d.cadence === 'daily');
   const weeklyDisciplines = activeDisciplines.filter((d) => d.cadence === 'weekly');
 
@@ -186,6 +186,17 @@ export function computeDailyRecord(
       weeklyCompleted[d.id] = true;
     }
     totalActual += act;
+  });
+
+  // Preserve historical actuals for archived or inactive disciplines
+  Object.keys(actuals).forEach((actId) => {
+    if (activityActuals[actId] === undefined) {
+      const actMins = Math.max(0, actuals[actId] || 0);
+      if (actMins > 0) {
+        activityActuals[actId] = actMins;
+        totalActual += actMins;
+      }
+    }
   });
 
   // Overall percentage

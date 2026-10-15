@@ -5,6 +5,13 @@ import {
   calculateStreaks,
   computeDailyRecord,
 } from './data/productivityStore';
+import {
+  exportBackupJSON,
+  downloadBackupFile,
+  saveSafetySnapshot,
+  applyRestoredBackup,
+  ProductivityBackupData,
+} from './services/backupRestoreService';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
 import { DailyTrackerView } from './components/DailyTrackerView';
@@ -23,7 +30,7 @@ const STORAGE_KEY_SETTINGS = 'productivity_os_settings_v1';
 export default function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard');
 
-  // Load or initialize settings
+  // Load or initialize settings safely
   const [settings, setSettings] = useState<UserSettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
@@ -39,14 +46,22 @@ export default function App() {
     return DEFAULT_SETTINGS;
   });
 
-  // Load daily records - empty by default (zero demo data)
+  // Load daily records non-destructively with automatic legacy migration fallback
   const [records, setRecords] = useState<DailyRecord[]>(() => {
     try {
-      localStorage.removeItem('productivity_os_daily_records_v1');
-      const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+      const savedClean = localStorage.getItem(STORAGE_KEY_RECORDS);
+      if (savedClean) {
+        const parsed = JSON.parse(savedClean);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      // Non-destructive fallback check for legacy key: NEVER delete historical data
+      const legacySaved = localStorage.getItem('productivity_os_daily_records_v1');
+      if (legacySaved) {
+        const parsedLegacy = JSON.parse(legacySaved);
+        if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+          localStorage.setItem(STORAGE_KEY_RECORDS, legacySaved);
+          return parsedLegacy;
+        }
       }
     } catch {
       // fallback
@@ -108,10 +123,11 @@ export default function App() {
   };
 
   const handleClearAllRecords = () => {
+    // Take safety snapshot before clearing so user can recover if accidental
+    saveSafetySnapshot(settings, records);
     setRecords([]);
     try {
       localStorage.removeItem(STORAGE_KEY_RECORDS);
-      localStorage.removeItem('productivity_os_daily_records_v1');
     } catch {
       // ignore
     }
@@ -164,6 +180,42 @@ export default function App() {
     setEditingDiscipline(undefined);
   };
 
+  // Safe non-destructive discipline archiving: preserves historical records
+  const handleArchiveDiscipline = (disciplineId: string) => {
+    const updatedDisciplines = settings.disciplines.map((d) =>
+      d.id === disciplineId
+        ? { ...d, isArchived: true, isActive: false, archivedAt: new Date().toISOString() }
+        : d
+    );
+    const newSettings: UserSettings = {
+      ...settings,
+      disciplines: updatedDisciplines,
+    };
+
+    setSettings(newSettings);
+
+    if (currentTab === disciplineId) {
+      setCurrentTab('dashboard');
+    }
+
+    // Non-destructive: preserves activityActuals in past records!
+    setRecords((prev) =>
+      prev.map((r) =>
+        computeDailyRecord(
+          r.date,
+          r.activityActuals || {},
+          newSettings,
+          r.notes,
+          r.weeklyCompleted || {}
+        )
+      )
+    );
+
+    setIsAddDisciplineOpen(false);
+    setEditingDiscipline(undefined);
+  };
+
+  // Safe non-destructive discipline removal from roster: PRESERVES historical minutes in activityActuals!
   const handleDeleteDiscipline = (disciplineId: string) => {
     const updatedDisciplines = settings.disciplines.filter((d) => d.id !== disciplineId);
     const newSettings: UserSettings = {
@@ -173,19 +225,44 @@ export default function App() {
 
     setSettings(newSettings);
 
-    // If currently viewing the deleted discipline, go back to dashboard
     if (currentTab === disciplineId) {
       setCurrentTab('dashboard');
     }
 
-    // Recompute records
+    // Non-destructive: keeps all historical activityActuals intact!
     setRecords((prev) =>
-      prev.map((r) => {
-        const nextActuals = { ...(r.activityActuals || {}) };
-        delete nextActuals[disciplineId];
-        return computeDailyRecord(r.date, nextActuals, newSettings, r.notes, r.weeklyCompleted || {});
-      })
+      prev.map((r) =>
+        computeDailyRecord(
+          r.date,
+          r.activityActuals || {},
+          newSettings,
+          r.notes,
+          r.weeklyCompleted || {}
+        )
+      )
     );
+
+    setIsAddDisciplineOpen(false);
+    setEditingDiscipline(undefined);
+  };
+
+  // Backup & Restore Handlers
+  const handleExportBackup = () => {
+    const jsonString = exportBackupJSON(settings, records);
+    downloadBackupFile(jsonString);
+  };
+
+  const handleRestoreBackup = (
+    backupData: ProductivityBackupData,
+    strategy: 'replace' | 'merge'
+  ) => {
+    // Step 1: Automatic pre-restore safety snapshot
+    saveSafetySnapshot(settings, records);
+
+    // Step 2: Apply restored state safely
+    const result = applyRestoredBackup(backupData, settings, records, strategy);
+    setSettings(result.settings);
+    setRecords(result.records);
   };
 
   // Determine active view
@@ -214,7 +291,7 @@ export default function App() {
             <span className="text-neutral-300">/</span>
             <span className="text-xs font-semibold text-neutral-800 capitalize">
               {matchingDiscipline
-                ? `${matchingDiscipline.name} (${matchingDiscipline.cadence === 'weekly' ? 'Weekly' : 'Daily'})`
+                ? `${matchingDiscipline.name} (${matchingDiscipline.cadence === 'weekly' ? 'Weekly' : 'Daily'}${matchingDiscipline.isArchived ? ' - Archived' : ''})`
                 : currentTab.replace(/([A-Z])/g, ' $1')}
             </span>
           </div>
@@ -285,11 +362,15 @@ export default function App() {
           {currentTab === 'settings' && (
             <SettingsView
               settings={settings}
+              records={records}
               recordsCount={records.length}
               onClearAllRecords={handleClearAllRecords}
               onOpenAddDiscipline={handleOpenAddDiscipline}
               onEditDiscipline={handleOpenEditDiscipline}
               onDeleteDiscipline={handleDeleteDiscipline}
+              onArchiveDiscipline={handleArchiveDiscipline}
+              onExportBackup={handleExportBackup}
+              onRestoreBackup={handleRestoreBackup}
               onUpdateSettings={(newSettings) => {
                 setSettings(newSettings);
                 // recompute all records
@@ -320,7 +401,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* Daily Entry Modal */}
+      {/* Daily Entry Modal - now properly supplied with allRecords for weekly cadence resolution */}
       <DailyLogModal
         isOpen={isLogModalOpen}
         onClose={() => {
@@ -334,6 +415,7 @@ export default function App() {
         initialDate={targetDate}
         existingRecord={editingRecord}
         settings={settings}
+        allRecords={records}
       />
 
       {/* Add / Edit Activity Discipline Modal */}
@@ -345,6 +427,7 @@ export default function App() {
         }}
         onSave={handleSaveDiscipline}
         onDelete={handleDeleteDiscipline}
+        onArchive={handleArchiveDiscipline}
         existingDiscipline={editingDiscipline}
       />
     </div>

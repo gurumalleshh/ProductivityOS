@@ -11,6 +11,9 @@ export interface ActivityDiscipline {
   color: string; // hex color e.g. "#4F46E5"
   icon: string; // lucide icon identifier
   isActive: boolean;
+  isArchived?: boolean;
+  archivedAt?: string;
+  order?: number;
   createdAt?: string;
 }
 

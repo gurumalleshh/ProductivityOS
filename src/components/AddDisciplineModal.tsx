@@ -3,13 +3,14 @@ import { ActivityDiscipline, ActivityCadence } from '../types';
 import { POPULAR_DISCIPLINE_PRESETS, formatMinutes, parseDurationInput } from '../data/productivityStore';
 import { DisciplineIcon, AVAILABLE_ICONS } from './DisciplineIcon';
 import { ConfirmModal } from './ConfirmModal';
-import { X, Plus, Check, Calendar, Sun, Clock, Tag, Sparkles, Trash2 } from 'lucide-react';
+import { X, Plus, Check, Calendar, Sun, Clock, Tag, Sparkles, Trash2, Archive, RotateCcw } from 'lucide-react';
 
 interface AddDisciplineModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (discipline: ActivityDiscipline) => void;
   onDelete?: (id: string) => void;
+  onArchive?: (id: string, archive: boolean) => void;
   initialDiscipline?: ActivityDiscipline | null;
   existingDiscipline?: ActivityDiscipline | null;
 }
@@ -350,22 +351,46 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
           </div>
 
           {/* Submit Footer */}
-          <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3">
-            <div>
+          <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              {isEditing && onArchive && currentDisc && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onArchive(currentDisc.id, !currentDisc.isArchived);
+                    onClose();
+                  }}
+                  className="px-3 py-2 rounded-lg text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200"
+                  title={currentDisc.isArchived ? "Restore to active roster" : "Archive without deleting past historical records"}
+                >
+                  {currentDisc.isArchived ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Unarchive</span>
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Archive (Safe)</span>
+                    </>
+                  )}
+                </button>
+              )}
+
               {isEditing && onDelete && currentDisc && (
                 <button
                   type="button"
                   onClick={() => setIsDeleteConfirmOpen(true)}
                   className="px-3 py-2 rounded-lg text-rose-600 hover:text-rose-800 hover:bg-rose-50 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-                  title="Delete this discipline"
+                  title="Permanently remove discipline"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Discipline</span>
+                  <span>Delete</span>
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               <button
                 type="button"
                 onClick={onClose}
@@ -389,7 +414,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         title={`Delete "${currentDisc?.name}"?`}
-        message={`Are you sure you want to permanently delete "${currentDisc?.name}"?\n\nThis will remove it from your active system, daily benchmark standard, and all future tracking logs.`}
+        message={`Are you sure you want to permanently delete "${currentDisc?.name}"?\n\nTip: If you simply want to retire this habit from your daily targets while keeping all historical logs intact in your database and charts, choose "Archive (Safe)" instead.`}
         confirmLabel="Delete Discipline"
         confirmVariant="danger"
         onConfirm={() => {
