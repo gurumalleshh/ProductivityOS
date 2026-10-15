@@ -9,10 +9,14 @@ export interface ProductivityBackup {
   records: DailyRecord[];
 }
 
+export type ProductivityBackupData = ProductivityBackup;
+
 export interface ValidationResult {
   isValid: boolean;
   error?: string;
+  errors?: string[];
   data?: ProductivityBackup;
+  backupData?: ProductivityBackup;
   summary?: {
     recordCount: number;
     disciplineCount: number;
@@ -54,13 +58,27 @@ export function exportBackupJSON(
 }
 
 /**
- * Triggers a download of the full JSON backup file in the desktop browser/Electron window
+ * Triggers a download of the full JSON backup file in the desktop browser/Electron window.
+ * Accepts either pre-serialized JSON string, or (records, settings), or ProductivityBackup object.
  */
 export function downloadBackupFile(
-  records: DailyRecord[],
-  settings: UserSettings
+  contentOrRecords: string | DailyRecord[] | ProductivityBackup,
+  settings?: UserSettings
 ): void {
-  const jsonContent = exportBackupJSON(records, settings);
+  let jsonContent: string;
+  if (typeof contentOrRecords === 'string') {
+    jsonContent = contentOrRecords;
+  } else if (Array.isArray(contentOrRecords)) {
+    if (!settings) {
+      throw new Error('settings is required when passing DailyRecord[] to downloadBackupFile');
+    }
+    jsonContent = exportBackupJSON(contentOrRecords, settings);
+  } else if (typeof contentOrRecords === 'object' && contentOrRecords !== null) {
+    jsonContent = JSON.stringify(contentOrRecords, null, 2);
+  } else {
+    throw new Error('Invalid argument passed to downloadBackupFile');
+  }
+
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
   const timeStr = now.toTimeString().slice(0, 5).replace(':', '-');
@@ -78,17 +96,22 @@ export function downloadBackupFile(
 }
 
 /**
- * Takes an automated safety snapshot in localStorage before any bulk restore or clear
+ * Takes an automated safety snapshot in localStorage before any bulk restore or clear.
+ * Verifies that the snapshot was written to localStorage successfully and returns a boolean.
  */
 export function saveSafetySnapshot(
   records: DailyRecord[],
   settings: UserSettings
-): void {
+): boolean {
   try {
     const payload = createBackupPayload(records, settings);
-    localStorage.setItem(STORAGE_KEY_SNAPSHOT, JSON.stringify(payload));
+    const serialized = JSON.stringify(payload);
+    localStorage.setItem(STORAGE_KEY_SNAPSHOT, serialized);
+    const verified = localStorage.getItem(STORAGE_KEY_SNAPSHOT);
+    return verified !== null && verified.length === serialized.length;
   } catch (err) {
     console.warn('Failed to save safety snapshot to localStorage:', err);
+    return false;
   }
 }
 
@@ -113,25 +136,25 @@ export function getSafetySnapshot(): ProductivityBackup | null {
  * Rigorously validates an imported JSON string before allowing restoration
  */
 export function validateBackupJSON(jsonString: string): ValidationResult {
+  const fail = (msg: string): ValidationResult => ({
+    isValid: false,
+    error: msg,
+    errors: [msg],
+  });
+
   if (!jsonString || typeof jsonString !== 'string' || !jsonString.trim()) {
-    return { isValid: false, error: 'The provided file is empty.' };
+    return fail('The provided file is empty.');
   }
 
   let parsed: any;
   try {
     parsed = JSON.parse(jsonString);
   } catch (err: any) {
-    return {
-      isValid: false,
-      error: `Invalid JSON syntax: ${err.message || 'Could not parse JSON structure.'}`,
-    };
+    return fail(`Invalid JSON syntax: ${err.message || 'Could not parse JSON structure.'}`);
   }
 
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return {
-      isValid: false,
-      error: 'Backup file must contain a root JSON object containing settings and records.',
-    };
+    return fail('Backup file must contain a root JSON object containing settings and records.');
   }
 
   // Check if either records or settings is present
@@ -139,10 +162,7 @@ export function validateBackupJSON(jsonString: string): ValidationResult {
   const hasSettings = parsed.settings && typeof parsed.settings === 'object';
 
   if (!hasRecords && !hasSettings) {
-    return {
-      isValid: false,
-      error: 'Backup file must contain at least a valid "records" array or "settings" object.',
-    };
+    return fail('Backup file must contain at least a valid "records" array or "settings" object.');
   }
 
   // Validate settings if present
@@ -151,22 +171,13 @@ export function validateBackupJSON(jsonString: string): ValidationResult {
     for (let i = 0; i < parsed.settings.disciplines.length; i++) {
       const d = parsed.settings.disciplines[i];
       if (!d || typeof d !== 'object') {
-        return {
-          isValid: false,
-          error: `Discipline at index ${i} is not a valid object.`,
-        };
+        return fail(`Discipline at index ${i} is not a valid object.`);
       }
       if (!d.id || typeof d.id !== 'string') {
-        return {
-          isValid: false,
-          error: `Discipline at index ${i} is missing a required string ID.`,
-        };
+        return fail(`Discipline at index ${i} is missing a required string ID.`);
       }
       if (!d.name || typeof d.name !== 'string') {
-        return {
-          isValid: false,
-          error: `Discipline "${d.id}" is missing a valid name.`,
-        };
+        return fail(`Discipline "${d.id}" is missing a valid name.`);
       }
 
       validatedDisciplines.push({
@@ -194,25 +205,16 @@ export function validateBackupJSON(jsonString: string): ValidationResult {
     for (let i = 0; i < parsed.records.length; i++) {
       const r = parsed.records[i];
       if (!r || typeof r !== 'object') {
-        return {
-          isValid: false,
-          error: `Record at index ${i} is not a valid object.`,
-        };
+        return fail(`Record at index ${i} is not a valid object.`);
       }
       if (!r.date || typeof r.date !== 'string') {
-        return {
-          isValid: false,
-          error: `Record at index ${i} is missing a required date string.`,
-        };
+        return fail(`Record at index ${i} is missing a required date string.`);
       }
 
       // Check date format YYYY-MM-DD
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(r.date.trim())) {
-        return {
-          isValid: false,
-          error: `Record at index ${i} has an invalid date format: "${r.date}". Expected YYYY-MM-DD.`,
-        };
+        return fail(`Record at index ${i} has an invalid date format: "${r.date}". Expected YYYY-MM-DD.`);
       }
 
       // Ensure activityActuals is an object
@@ -271,6 +273,19 @@ export function validateBackupJSON(jsonString: string): ValidationResult {
     }
   }
 
+  // Check version compatibility if present
+  if (parsed.version !== undefined) {
+    const vStr = String(parsed.version).trim();
+    if (!vStr.startsWith('1')) {
+      const err = `Unsupported backup version: "${vStr}". This version of ProductivityOS only supports version 1.x backups.`;
+      return {
+        isValid: false,
+        error: err,
+        errors: [err],
+      };
+    }
+  }
+
   // Determine summary metrics
   const sortedDates = validatedRecords.map((r) => r.date).sort();
   const summary = {
@@ -296,6 +311,7 @@ export function validateBackupJSON(jsonString: string): ValidationResult {
   return {
     isValid: true,
     data: validatedData,
+    backupData: validatedData,
     summary,
   };
 }
@@ -308,7 +324,12 @@ export function applyRestoredBackup(
   currentSettings: UserSettings,
   currentRecords: DailyRecord[],
   mode: 'replace' | 'merge' = 'replace'
-): { updatedSettings: UserSettings; updatedRecords: DailyRecord[] } {
+): {
+  settings: UserSettings;
+  records: DailyRecord[];
+  updatedSettings: UserSettings;
+  updatedRecords: DailyRecord[];
+} {
   if (mode === 'replace') {
     // Preserve any existing settings properties if backup omitted them
     const newSettings: UserSettings = {
@@ -330,7 +351,12 @@ export function applyRestoredBackup(
       )
     ).sort((a, b) => b.date.localeCompare(a.date));
 
-    return { updatedSettings: newSettings, updatedRecords };
+    return {
+      settings: newSettings,
+      records: updatedRecords,
+      updatedSettings: newSettings,
+      updatedRecords,
+    };
   } else {
     // Merge mode: combine disciplines by ID
     const disciplineMap = new Map<string, ActivityDiscipline>();
@@ -362,6 +388,11 @@ export function applyRestoredBackup(
 
     const updatedRecords = Array.from(recordMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
-    return { updatedSettings: mergedSettings, updatedRecords };
+    return {
+      settings: mergedSettings,
+      records: updatedRecords,
+      updatedSettings: mergedSettings,
+      updatedRecords,
+    };
   }
 }

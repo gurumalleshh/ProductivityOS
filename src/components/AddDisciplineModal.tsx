@@ -31,6 +31,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
   onClose,
   onSave,
   onDelete,
+  onArchive,
   initialDiscipline,
   existingDiscipline,
 }) => {

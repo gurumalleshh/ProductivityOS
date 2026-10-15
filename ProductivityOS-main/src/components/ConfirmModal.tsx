@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2, Archive, X } from 'lucide-react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -7,7 +7,7 @@ interface ConfirmModalProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  confirmVariant?: 'danger' | 'warning';
+  confirmVariant?: 'danger' | 'warning' | 'primary';
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -41,13 +41,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                 confirmVariant === 'danger'
                   ? 'bg-rose-100 text-rose-600'
-                  : 'bg-amber-100 text-amber-600'
+                  : confirmVariant === 'warning'
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-indigo-100 text-indigo-700'
               }`}
             >
               {confirmVariant === 'danger' ? (
                 <Trash2 className="w-5 h-5" />
-              ) : (
+              ) : confirmVariant === 'warning' ? (
                 <AlertTriangle className="w-5 h-5" />
+              ) : (
+                <Archive className="w-5 h-5" />
               )}
             </div>
 
@@ -89,10 +93,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               className={`px-4 py-2 text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 ${
                 confirmVariant === 'danger'
                   ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : confirmVariant === 'warning'
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }`}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              {confirmVariant === 'danger' ? (
+                <Trash2 className="w-3.5 h-3.5" />
+              ) : confirmVariant === 'warning' ? (
+                <AlertTriangle className="w-3.5 h-3.5" />
+              ) : (
+                <Archive className="w-3.5 h-3.5" />
+              )}
               <span>{confirmLabel}</span>
             </button>
           </div>

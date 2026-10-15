@@ -124,7 +124,7 @@ export default function App() {
 
   const handleClearAllRecords = () => {
     // Take safety snapshot before clearing so user can recover if accidental
-    saveSafetySnapshot(settings, records);
+    saveSafetySnapshot(records, settings);
     setRecords([]);
     try {
       localStorage.removeItem(STORAGE_KEY_RECORDS);
@@ -181,10 +181,15 @@ export default function App() {
   };
 
   // Safe non-destructive discipline archiving: preserves historical records
-  const handleArchiveDiscipline = (disciplineId: string) => {
+  const handleArchiveDiscipline = (disciplineId: string, shouldArchive: boolean = true) => {
     const updatedDisciplines = settings.disciplines.map((d) =>
       d.id === disciplineId
-        ? { ...d, isArchived: true, isActive: false, archivedAt: new Date().toISOString() }
+        ? {
+            ...d,
+            isArchived: shouldArchive,
+            isActive: shouldArchive ? false : true,
+            archivedAt: shouldArchive ? new Date().toISOString() : undefined,
+          }
         : d
     );
     const newSettings: UserSettings = {
@@ -194,7 +199,7 @@ export default function App() {
 
     setSettings(newSettings);
 
-    if (currentTab === disciplineId) {
+    if (currentTab === disciplineId && shouldArchive) {
       setCurrentTab('dashboard');
     }
 
@@ -248,7 +253,7 @@ export default function App() {
 
   // Backup & Restore Handlers
   const handleExportBackup = () => {
-    const jsonString = exportBackupJSON(settings, records);
+    const jsonString = exportBackupJSON(records, settings);
     downloadBackupFile(jsonString);
   };
 
@@ -257,7 +262,10 @@ export default function App() {
     strategy: 'replace' | 'merge'
   ) => {
     // Step 1: Automatic pre-restore safety snapshot
-    saveSafetySnapshot(settings, records);
+    const snapshotSaved = saveSafetySnapshot(records, settings);
+    if (!snapshotSaved) {
+      console.warn('Safety snapshot could not be verified in localStorage before restoring.');
+    }
 
     // Step 2: Apply restored state safely
     const result = applyRestoredBackup(backupData, settings, records, strategy);

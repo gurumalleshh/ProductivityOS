@@ -28,7 +28,8 @@ import { ConfirmModal } from './ConfirmModal';
 import { RestoreModal } from './RestoreModal';
 import {
   validateBackupJSON,
-  ProductivityBackupData,
+  ProductivityBackup,
+  ValidationResult,
 } from '../services/backupRestoreService';
 
 interface SettingsViewProps {
@@ -38,9 +39,9 @@ interface SettingsViewProps {
   onOpenAddDiscipline?: () => void;
   onEditDiscipline?: (discipline: ActivityDiscipline) => void;
   onDeleteDiscipline?: (id: string) => void;
-  onArchiveDiscipline?: (id: string) => void;
+  onArchiveDiscipline?: (id: string, archive?: boolean) => void;
   onExportBackup?: () => void;
-  onRestoreBackup?: (backupData: ProductivityBackupData, strategy: 'replace' | 'merge') => void;
+  onRestoreBackup?: (backupData: ProductivityBackup, strategy: 'replace' | 'merge') => void;
   onClearAllRecords?: () => void;
   recordsCount?: number;
 }
@@ -67,7 +68,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [showArchived, setShowArchived] = useState(false);
 
   // Backup & Restore states
-  const [pendingRestore, setPendingRestore] = useState<ProductivityBackupData | null>(null);
+  const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null);
   const [restoreErrors, setRestoreErrors] = useState<string[] | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
 
@@ -121,7 +122,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleArchive = (disciplineId: string) => {
     if (onArchiveDiscipline) {
-      onArchiveDiscipline(disciplineId);
+      onArchiveDiscipline(disciplineId, true);
     } else {
       const updated = settings.disciplines.map((d) =>
         d.id === disciplineId
@@ -135,12 +136,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleUnarchive = (disciplineId: string) => {
-    const updated = settings.disciplines.map((d) =>
-      d.id === disciplineId
-        ? { ...d, isArchived: false, isActive: true, archivedAt: undefined }
-        : d
-    );
-    onUpdateSettings({ ...settings, disciplines: updated });
+    if (onArchiveDiscipline) {
+      onArchiveDiscipline(disciplineId, false);
+    } else {
+      const updated = settings.disciplines.map((d) =>
+        d.id === disciplineId
+          ? { ...d, isArchived: false, isActive: true, archivedAt: undefined }
+          : d
+      );
+      onUpdateSettings({ ...settings, disciplines: updated });
+    }
     setSavedAlert(true);
     setTimeout(() => setSavedAlert(false), 2500);
   };
@@ -161,16 +166,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       try {
         const text = event.target?.result as string;
         const validation = validateBackupJSON(text);
-        if (!validation.isValid || !validation.backupData) {
-          setRestoreErrors(validation.errors);
-          setPendingRestore(null);
+        if (!validation.isValid || !validation.data) {
+          setRestoreErrors(validation.errors || [validation.error || 'Failed to validate backup file.']);
+          setPendingValidation(null);
         } else {
           setRestoreErrors(null);
-          setPendingRestore(validation.backupData);
+          setPendingValidation(validation);
         }
       } catch (err: any) {
         setRestoreErrors([`File read error: ${err.message}`]);
-        setPendingRestore(null);
+        setPendingValidation(null);
       }
       e.target.value = '';
     };
@@ -708,23 +713,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       />
 
       {/* JSON Restore Confirmation Modal */}
-      {pendingRestore && (
+      {pendingValidation && pendingValidation.data && (
         <RestoreModal
-          isOpen={!!pendingRestore}
-          backupData={pendingRestore}
-          currentRecordsCount={recordsCount}
-          currentDisciplinesCount={settings.disciplines.length}
-          onConfirm={(strategy) => {
-            if (onRestoreBackup && pendingRestore) {
-              onRestoreBackup(pendingRestore, strategy);
+          isOpen={!!pendingValidation}
+          validation={pendingValidation}
+          onConfirm={(backup, strategy) => {
+            if (onRestoreBackup) {
+              onRestoreBackup(backup, strategy);
               setRestoreSuccess(
-                `Successfully restored ${pendingRestore.records.length} records and ${pendingRestore.settings.disciplines.length} disciplines (${strategy} strategy)!`
+                `Successfully restored ${backup.records.length} records and ${backup.settings.disciplines.length} disciplines (${strategy} strategy)!`
               );
               setTimeout(() => setRestoreSuccess(null), 4000);
             }
-            setPendingRestore(null);
+            setPendingValidation(null);
           }}
-          onClose={() => setPendingRestore(null)}
+          onClose={() => setPendingValidation(null)}
         />
       )}
     </div>
