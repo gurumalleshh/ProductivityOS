@@ -27,12 +27,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   return (
     <div
       id="confirm-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
         id="confirm-modal-content"
-        className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-neutral-200 overflow-hidden"
+        className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full border border-neutral-200 dark:border-neutral-800 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
@@ -40,10 +40,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                 confirmVariant === 'danger'
-                  ? 'bg-rose-100 text-rose-600'
+                  ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400'
                   : confirmVariant === 'warning'
-                  ? 'bg-amber-100 text-amber-600'
-                  : 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400'
+                  : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400'
               }`}
             >
               {confirmVariant === 'danger' ? (
@@ -57,30 +57,30 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-neutral-900 leading-snug">
+                <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 leading-snug">
                   {title}
                 </h3>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-neutral-400 hover:text-neutral-600 p-1 rounded-md transition-colors cursor-pointer"
+                  className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-1 rounded-md transition-colors cursor-pointer"
                   aria-label="Close dialog"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-xs text-neutral-600 mt-2 leading-relaxed whitespace-pre-line">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed whitespace-pre-line">
                 {message}
               </p>
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100">
+          <div className="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
             >
               {cancelLabel}
             </button>

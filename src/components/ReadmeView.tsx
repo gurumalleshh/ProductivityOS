@@ -41,32 +41,32 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
   return (
     <div className="space-y-8 max-w-4xl mx-auto py-2">
       {/* Title */}
-      <div className="border-b border-neutral-200/80 pb-6">
-        <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">
+      <div className="border-b border-neutral-200/80 dark:border-neutral-800 pb-6">
+        <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-1">
           Sheet 01 • Architecture & Philosophy
         </div>
-        <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight">
+        <h1 className="text-2xl font-extrabold text-neutral-900 dark:text-neutral-100 tracking-tight">
           YOUR PERSONAL PRODUCTIVITY OPERATING SYSTEM
         </h1>
-        <p className="text-sm text-neutral-600 mt-2 leading-relaxed">
+        <p className="text-sm text-neutral-600 dark:text-neutral-300 mt-2 leading-relaxed">
           A lifelong, data-driven personal operating system architected to compound depth, technical mastery, and discipline over decades. Fully dynamic with zero hardcoded constraints.
         </p>
       </div>
 
       {/* 1. System Philosophy */}
       <section className="space-y-3">
-        <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-indigo-600 shrink-0" />
+        <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
           <span>1. System Philosophy & Purpose</span>
         </h2>
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 text-xs text-neutral-700 leading-relaxed space-y-2.5">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed space-y-2.5">
           <p>
             Most habit trackers fail because they either record binary checkmarks (which hide depth of work) or suffer from spreadsheet decay (needing new tabs every month or year).
           </p>
           <p>
             The <strong>Personal Productivity OS</strong> operates on four foundational pillars:
           </p>
-          <ul className="list-disc pl-5 space-y-1.5 font-mono text-[11px] text-neutral-600">
+          <ul className="list-disc pl-5 space-y-1.5 font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
             <li><strong>Single Lifetime Repository:</strong> No separate monthly or yearly sheets. All days live in one master table designed to scale to 10,000+ rows effortlessly.</li>
             <li><strong>Decoupled Presentation & Logic:</strong> Calculations occur automatically, leaving the user interface calm, readable, and free of visual formula noise.</li>
             <li><strong>Dynamic User-Configured Disciplines:</strong> Zero hardcoded targets. Whenever you add, edit, or adjust activities, your baseline benchmark and analytics auto-generate across the system.</li>
@@ -79,16 +79,16 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
       <section className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>
                 2. Configured Activity Disciplines{' '}
-                <span className="font-mono text-emerald-700 font-bold">
+                <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
                   ({formatMinutes(totalDailyMinutes)} Daily Standard)
                 </span>
               </span>
             </h2>
-            <p className="text-[11px] text-neutral-500 mt-0.5">
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
               Auto-generated based on your active disciplines. Adding or modifying activities instantly recalculates your baseline.
             </p>
           </div>
@@ -97,7 +97,7 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
             <button
               type="button"
               onClick={onOpenAddDiscipline}
-              className="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg inline-flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white rounded-lg inline-flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ Add Activity Discipline</span>
@@ -106,10 +106,10 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
         </div>
 
         {dailyDisciplines.length === 0 && weeklyDisciplines.length === 0 ? (
-          <div className="p-8 text-center bg-white border border-dashed border-neutral-300 rounded-xl">
+          <div className="p-8 text-center bg-white dark:bg-neutral-900 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl">
             <Clock className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
-            <div className="text-sm font-semibold text-neutral-800">No activity disciplines configured</div>
-            <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+            <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">No activity disciplines configured</div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto">
               Add your first activity discipline above to auto-generate your personal daily benchmark.
             </p>
             {onOpenAddDiscipline && (
@@ -131,8 +131,8 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
                 <div
                   key={d.id}
                   onClick={() => onSelectDiscipline?.(d.id)}
-                  className={`p-3.5 rounded-xl bg-white border border-neutral-200/90 shadow-2xs transition-all flex flex-col justify-between ${
-                    onSelectDiscipline ? 'hover:border-indigo-300 hover:shadow-xs cursor-pointer group' : ''
+                  className={`p-3.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-2xs transition-all flex flex-col justify-between ${
+                    onSelectDiscipline ? 'hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xs cursor-pointer group' : ''
                   }`}
                 >
                   <div>
@@ -147,12 +147,12 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
                         <span className="font-mono text-[11px] text-neutral-400 font-semibold shrink-0">
                           {index + 1}.
                         </span>
-                        <div className="font-semibold text-neutral-900 truncate" title={d.name}>
+                        <div className="font-semibold text-neutral-900 dark:text-neutral-100 truncate" title={d.name}>
                           {d.name}
                         </div>
                       </div>
 
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 whitespace-nowrap leading-none shrink-0">
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 whitespace-nowrap leading-none shrink-0">
                         Daily
                       </span>
                     </div>
@@ -161,15 +161,15 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
                       {formatMinutes(d.targetMinutes)} ({d.targetMinutes}m)
                     </div>
 
-                    <p className="text-[11px] text-neutral-500 mt-1 line-clamp-2 leading-tight">
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-tight">
                       {d.tagline || `${d.category || 'General'} discipline`}
                     </p>
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-neutral-100 flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                  <div className="mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-[10px] font-mono text-neutral-400">
                     <span className="truncate">{d.category || 'Discipline'}</span>
                     {onSelectDiscipline && (
-                      <span className="text-indigo-600 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 whitespace-nowrap">
+                      <span className="text-indigo-600 dark:text-indigo-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 whitespace-nowrap">
                         Analytics <ArrowUpRight className="w-3 h-3" />
                       </span>
                     )}
@@ -178,7 +178,7 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
               ))}
 
               {/* Total Daily Benchmark Card */}
-              <div className="p-4 rounded-xl bg-neutral-900 text-white flex flex-col justify-between shadow-xs border border-neutral-800">
+              <div className="p-4 rounded-xl bg-neutral-900 dark:bg-neutral-950 text-white flex flex-col justify-between shadow-xs border border-neutral-800">
                 <div>
                   <div className="text-[10px] uppercase font-mono tracking-wider text-neutral-400">
                     Total Daily Benchmark
@@ -200,15 +200,15 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
 
             {/* Weekly Special Activities Subsection (If any configured) */}
             {weeklyDisciplines.length > 0 && (
-              <div className="mt-4 p-4 rounded-xl bg-indigo-50/60 border border-indigo-200/80 space-y-3">
+              <div className="mt-4 p-4 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/80 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
-                    <span className="text-xs font-bold text-indigo-950 uppercase tracking-wide font-mono">
+                    <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                    <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200 uppercase tracking-wide font-mono">
                       Weekly Special Activities (Once per week cadence)
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 leading-none whitespace-nowrap">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 leading-none whitespace-nowrap">
                     {weeklyDisciplines.length} Weekly Activity{weeklyDisciplines.length > 1 ? 'ies' : ''}
                   </span>
                 </div>
@@ -218,8 +218,8 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
                     <div
                       key={d.id}
                       onClick={() => onSelectDiscipline?.(d.id)}
-                      className={`p-3 rounded-lg bg-white border border-indigo-100 flex items-center justify-between gap-3 shadow-2xs ${
-                        onSelectDiscipline ? 'hover:border-indigo-300 cursor-pointer' : ''
+                      className={`p-3 rounded-lg bg-white dark:bg-neutral-900 border border-indigo-100 dark:border-neutral-800 flex items-center justify-between gap-3 shadow-2xs ${
+                        onSelectDiscipline ? 'hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer' : ''
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -230,17 +230,17 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
                           <DisciplineIcon name={d.icon} className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="font-semibold text-xs text-neutral-900 truncate" title={d.name}>
+                          <div className="font-semibold text-xs text-neutral-900 dark:text-neutral-100 truncate" title={d.name}>
                             {d.name}
                           </div>
-                          <div className="text-[11px] text-neutral-500 truncate">
+                          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
                             {d.tagline || '1 session required per ISO calendar week'}
                           </div>
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="font-mono text-xs font-bold text-indigo-700 whitespace-nowrap">
+                        <div className="font-mono text-xs font-bold text-indigo-700 dark:text-indigo-400 whitespace-nowrap">
                           {formatMinutes(d.targetMinutes)}
                         </div>
                         <div className="text-[10px] font-mono text-neutral-400 whitespace-nowrap">
@@ -258,11 +258,11 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
 
       {/* 3. Balanced Scoring Formula */}
       <section className="space-y-3">
-        <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+        <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <span>3. Balanced Scoring Methodology</span>
         </h2>
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 text-xs text-neutral-700 space-y-2.5">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 text-xs text-neutral-700 dark:text-neutral-300 space-y-2.5">
           <p>
             In traditional spreadsheets, if you do 4 hours of physical training and 0 minutes of coding or development, a naive average would say <code>(240/60 + 0/60) / 2 = 200%</code>. That is deceptive and undermines true multi-domain consistency.
           </p>
@@ -287,30 +287,30 @@ export const ReadmeView: React.FC<ReadmeViewProps> = ({
 
       {/* 4. Streaks Engine */}
       <section className="space-y-3">
-        <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-          <Flame className="w-4 h-4 text-rose-600 shrink-0" />
+        <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <Flame className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
           <span>4. Streak Engine Specification</span>
         </h2>
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 text-xs text-neutral-700 space-y-3">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 text-xs text-neutral-700 dark:text-neutral-300 space-y-3">
           <p>
             A day qualifies for your streak if its balanced completion reaches at least <strong>80%</strong>. This accounts for unavoidable real-world schedule fluctuations while maintaining an executive standard of discipline.
           </p>
 
-          {/* Status Qualifier Boxes with generous padding and clean character allotment */}
+          {/* Status Qualifier Boxes */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 font-mono text-center text-xs">
-            <div className="p-3 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex flex-col items-center justify-center min-h-[64px]">
+            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex flex-col items-center justify-center min-h-[64px]">
               <div className="font-bold text-sm whitespace-nowrap">100%+</div>
               <div className="text-[11px] font-semibold whitespace-nowrap mt-0.5">COMPLETED</div>
             </div>
-            <div className="p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 flex flex-col items-center justify-center min-h-[64px]">
+            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex flex-col items-center justify-center min-h-[64px]">
               <div className="font-bold text-sm whitespace-nowrap">80% – 99%</div>
               <div className="text-[11px] font-semibold whitespace-nowrap mt-0.5">GOOD (Streak Met)</div>
             </div>
-            <div className="p-3 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 flex flex-col items-center justify-center min-h-[64px]">
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex flex-col items-center justify-center min-h-[64px]">
               <div className="font-bold text-sm whitespace-nowrap">50% – 79%</div>
               <div className="text-[11px] font-semibold whitespace-nowrap mt-0.5">PARTIAL</div>
             </div>
-            <div className="p-3 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 flex flex-col items-center justify-center min-h-[64px]">
+            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 flex flex-col items-center justify-center min-h-[64px]">
               <div className="font-bold text-sm whitespace-nowrap">&lt; 50%</div>
               <div className="text-[11px] font-semibold whitespace-nowrap mt-0.5">LOW</div>
             </div>
