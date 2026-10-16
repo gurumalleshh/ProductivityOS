@@ -15,10 +15,8 @@ import {
   Clock,
   Edit2,
   Trash2,
-  Sun,
   CheckCircle2,
-  Layers,
-  ArrowUpRight,
+  TrendingUp,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -103,7 +101,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="border-b border-neutral-200/80 pb-4">
+      <div className="border-b border-neutral-200/80 dark:border-neutral-800 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
@@ -114,14 +112,14 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-neutral-900 tracking-tight">
-                  {discipline.name.toUpperCase()} ANALYTICS
+                <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
+                  {discipline.name} Analytics
                 </h1>
                 <span
                   className={`text-xs font-mono font-semibold px-2 py-0.5 rounded border ${
                     isWeekly
-                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                      : 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
                   }`}
                 >
                   {isWeekly ? 'Weekly Special' : 'Daily Cadence'}
@@ -131,7 +129,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
                 </span>
               </div>
               {discipline.tagline && (
-                <p className="text-xs text-neutral-500 mt-0.5">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   "{discipline.tagline}"
                 </p>
               )}
@@ -143,7 +141,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
               <div className="text-[10px] text-neutral-400 font-mono uppercase">
                 {isWeekly ? 'Weekly Target' : 'Daily Target'}
               </div>
-              <div className="text-base font-bold font-mono text-neutral-900">
+              <div className="text-base font-bold font-mono text-neutral-900 dark:text-neutral-100">
                 {formatMinutes(discipline.targetMinutes)} {isWeekly ? '/ week' : '/ day'}
               </div>
             </div>
@@ -152,7 +150,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
               <button
                 type="button"
                 onClick={() => onEditDiscipline(discipline)}
-                className="p-2 rounded-lg border border-neutral-200 hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer"
+                className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
                 title="Edit Discipline Settings"
               >
                 <Edit2 className="w-4 h-4" />
@@ -163,7 +161,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                className="p-2 rounded-lg border border-neutral-200 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition-colors cursor-pointer"
+                className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                 title="Delete Discipline"
               >
                 <Trash2 className="w-4 h-4" />
@@ -175,14 +173,14 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
 
       {/* Weekly Banner if Weekly Cadence */}
       {isWeekly && weekStatus && (
-        <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center justify-between flex-wrap gap-3">
+        <div className="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2.5">
-            <Calendar className="w-4 h-4 text-indigo-600" />
+            <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <div>
-              <div className="text-xs font-semibold text-indigo-950">
+              <div className="text-xs font-semibold text-indigo-950 dark:text-indigo-200">
                 Weekly Special Activity Status for Week {currentWeekNum} ({currentYear})
               </div>
-              <div className="text-[11px] text-indigo-700">
+              <div className="text-[11px] text-indigo-700 dark:text-indigo-400">
                 Target: 1 session of {formatMinutes(discipline.targetMinutes)} per week
               </div>
             </div>
@@ -190,12 +188,12 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
 
           <div className="flex items-center gap-2">
             {weekStatus.completed ? (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Week Fulfilled ({formatMinutes(weekStatus.totalMinutes)})</span>
               </span>
             ) : (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                 Pending for Week {currentWeekNum}
               </span>
             )}
@@ -205,11 +203,11 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
 
       {/* 5 KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 shadow-xs">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
             Lifetime Hours
           </div>
-          <div className="text-2xl font-bold font-mono text-neutral-900 mt-1">
+          <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100 mt-1">
             {Math.round(totalMins / 60)}h {totalMins % 60}m
           </div>
           <div className="text-[11px] text-neutral-400 font-mono mt-1">
@@ -217,11 +215,11 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 shadow-xs">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
             {isWeekly ? 'Avg Per Session' : 'Average Daily'}
           </div>
-          <div className="text-2xl font-bold font-mono text-neutral-900 mt-1">
+          <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100 mt-1">
             {formatMinutes(avgMins)}
           </div>
           <div className="text-[11px] text-neutral-400 font-mono mt-1">
@@ -229,11 +227,11 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 shadow-xs">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
             Target Adherence
           </div>
-          <div className="text-2xl font-bold font-mono text-neutral-900 mt-1">
+          <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100 mt-1">
             {avgPct}%
           </div>
           <div className="text-[11px] text-neutral-400 font-mono mt-1">
@@ -241,12 +239,12 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 shadow-xs">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center gap-1">
             <Flame className="w-3 h-3 text-amber-500" />
             <span>Current Streak</span>
           </div>
-          <div className="text-2xl font-bold font-mono text-neutral-900 mt-1">
+          <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100 mt-1">
             {streaks.current} {isWeekly ? 'Weeks' : 'Days'}
           </div>
           <div className="text-[11px] text-neutral-400 font-mono mt-1">
@@ -254,12 +252,12 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-neutral-200/90 shadow-xs">
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center gap-1">
             <Award className="w-3 h-3 text-amber-500" />
             <span>Longest Streak</span>
           </div>
-          <div className="text-2xl font-bold font-mono text-neutral-900 mt-1">
+          <div className="text-2xl font-bold font-mono text-neutral-900 dark:text-neutral-100 mt-1">
             {streaks.longest} {isWeekly ? 'Weeks' : 'Days'}
           </div>
           <div className="text-[11px] text-neutral-400 font-mono mt-1">
@@ -271,23 +269,23 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
       {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Daily Time Invested */}
-        <div className="p-5 rounded-xl bg-white border border-neutral-200/90 shadow-xs space-y-4">
+        <div className="p-5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                 {isWeekly ? 'SESSION LOGS & DURATION' : 'DAILY TIME INVESTED'}
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Hours committed vs baseline benchmark ({formatMinutes(discipline.targetMinutes)})
               </p>
             </div>
-            <div className="text-xs font-mono font-medium text-neutral-500">
+            <div className="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400">
               Benchmark: {+(discipline.targetMinutes / 60).toFixed(2)}h
             </div>
           </div>
 
           {chronological.length === 0 ? (
-            <div className="h-60 w-full flex items-center justify-center border border-dashed border-neutral-200 rounded-lg text-xs text-neutral-400 font-mono">
+            <div className="h-60 w-full flex items-center justify-center border border-dashed border-neutral-200 dark:border-neutral-800 rounded-lg text-xs text-neutral-400 font-mono">
               Awaiting logs for this discipline
             </div>
           ) : (
@@ -297,7 +295,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
                   data={chronological.slice(-21)}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:opacity-10" />
                   <XAxis dataKey="date" stroke="#9CA3AF" fontSize={11} tickLine={false} />
                   <YAxis stroke="#9CA3AF" fontSize={11} tickLine={false} unit="h" />
                   <Tooltip
@@ -305,7 +303,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
                       if (active && payload && payload.length) {
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-neutral-900 text-white p-2.5 rounded-lg text-xs font-mono">
+                          <div className="bg-neutral-900 dark:bg-neutral-800 text-white p-2.5 rounded-lg text-xs font-mono shadow-lg border border-neutral-700">
                             <div className="text-neutral-400">{d.fullDate}</div>
                             <div className="text-indigo-400 font-bold">
                               Delivered: {d.actualHours}h ({d.pct}%)
@@ -329,23 +327,23 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
         </div>
 
         {/* Cumulative Growth */}
-        <div className="p-5 rounded-xl bg-white border border-neutral-200/90 shadow-xs space-y-4">
+        <div className="p-5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                 CUMULATIVE LIFETIME COMPOUNDING
               </h3>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Total hours accumulated into mastery curve
               </p>
             </div>
-            <div className="text-xs font-mono font-semibold text-neutral-800">
+            <div className="text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200">
               {Math.round(totalMins / 60)}h total
             </div>
           </div>
 
           {chronological.length === 0 ? (
-            <div className="h-60 w-full flex items-center justify-center border border-dashed border-neutral-200 rounded-lg text-xs text-neutral-400 font-mono">
+            <div className="h-60 w-full flex items-center justify-center border border-dashed border-neutral-200 dark:border-neutral-800 rounded-lg text-xs text-neutral-400 font-mono">
               Awaiting logs for this discipline
             </div>
           ) : (
@@ -355,7 +353,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
                   data={chronological}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:opacity-10" />
                   <XAxis dataKey="date" stroke="#9CA3AF" fontSize={11} tickLine={false} />
                   <YAxis stroke="#9CA3AF" fontSize={11} tickLine={false} unit="h" />
                   <Tooltip
@@ -363,7 +361,7 @@ export const DomainAnalyticsView: React.FC<DomainAnalyticsViewProps> = ({
                       if (active && payload && payload.length) {
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-neutral-900 text-white p-2 rounded-lg text-xs font-mono">
+                          <div className="bg-neutral-900 dark:bg-neutral-800 text-white p-2 rounded-lg text-xs font-mono shadow-lg border border-neutral-700">
                             <div className="text-neutral-400">{d.fullDate}</div>
                             <div className="text-emerald-400 font-bold">
                               Cumulative: {d.cumulativeHours} Hours

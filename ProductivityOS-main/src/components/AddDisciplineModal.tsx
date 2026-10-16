@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ActivityDiscipline, ActivityCadence } from '../types';
-import { POPULAR_DISCIPLINE_PRESETS, formatMinutes, parseDurationInput } from '../data/productivityStore';
+import { POPULAR_DISCIPLINE_PRESETS, formatMinutes, parseDurationInput, validateDurationInput } from '../data/productivityStore';
 import { DisciplineIcon, AVAILABLE_ICONS } from './DisciplineIcon';
 import { ConfirmModal } from './ConfirmModal';
-import { X, Plus, Check, Calendar, Sun, Clock, Tag, Sparkles, Trash2, Archive, RotateCcw } from 'lucide-react';
+import { X, Check, Calendar, Sun, Clock, Sparkles, Trash2, Archive, RotateCcw } from 'lucide-react';
 
 interface AddDisciplineModalProps {
   isOpen: boolean;
@@ -71,13 +71,23 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
       setError('Please provide an activity discipline name.');
       return;
     }
-    if (targetMinutes <= 0) {
+    const valResult = validateDurationInput(durationStr);
+    if (!valResult.isValid) {
+      setError(valResult.error || 'Please enter a valid target duration.');
+      return;
+    }
+    if (valResult.minutes <= 0) {
       setError('Target duration must be at least 1 minute.');
       return;
     }
+    if (valResult.minutes > 1440) {
+      setError('Target duration cannot exceed 24 hours (1440 minutes).');
+      return;
+    }
 
+    // Preserve the stable ID when editing an existing discipline so historical records stay intact!
     const id =
-      initialDiscipline?.id ||
+      currentDisc?.id ||
       name
         .trim()
         .toLowerCase()
@@ -92,12 +102,14 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
       tagline: tagline.trim(),
       category: category.trim() || 'General',
       cadence,
-      targetMinutes,
+      targetMinutes: valResult.minutes,
       weeklyTargetCount: cadence === 'weekly' ? 1 : undefined,
       color,
       icon,
-      isActive: true,
-      createdAt: initialDiscipline?.createdAt || new Date().toISOString(),
+      isActive: currentDisc?.isActive !== false,
+      isArchived: currentDisc?.isArchived,
+      archivedAt: currentDisc?.archivedAt,
+      createdAt: currentDisc?.createdAt || new Date().toISOString(),
     };
 
     onSave(newDiscipline);
@@ -105,10 +117,10 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-neutral-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 max-w-xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-8">
+    <div className="fixed inset-0 z-50 bg-neutral-900/60 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 max-w-xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-8">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/70">
+        <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/70 dark:bg-neutral-800/40">
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-xs"
@@ -117,10 +129,10 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
               <DisciplineIcon name={icon} className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-semibold text-base text-neutral-900">
+              <h2 className="font-semibold text-base text-neutral-900 dark:text-neutral-100">
                 {isEditing ? 'Edit Activity Discipline' : 'Add Activity Discipline'}
               </h2>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Configure your custom discipline with daily or weekly special cadence
               </p>
             </div>
@@ -128,7 +140,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 cursor-pointer"
+            className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -136,8 +148,8 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
 
         {/* Quick Presets (Only in Add mode) */}
         {!isEditing && (
-          <div className="px-6 pt-3 pb-2 border-b border-neutral-100 bg-neutral-50/40">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+          <div className="px-6 pt-3 pb-2 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-800/20">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
               <Sparkles className="w-3 h-3 text-indigo-500" />
               <span>Quick Presets (Click to Auto-fill)</span>
             </div>
@@ -147,7 +159,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => applyPreset(p)}
-                  className="px-2.5 py-1 rounded-full text-xs bg-white border border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 text-neutral-700 whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                  className="px-2.5 py-1 rounded-full text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                 >
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
@@ -166,14 +178,14 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-medium">
               {error}
             </div>
           )}
 
           {/* 1. Cadence Selector (Daily vs Weekly Once) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 block">
+            <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
               Cadence & Frequency
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -182,15 +194,15 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                 onClick={() => setCadence('daily')}
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   cadence === 'daily'
-                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
-                    : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                    ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20'
+                    : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Sun className={`w-4 h-4 ${cadence === 'daily' ? 'text-indigo-600' : 'text-neutral-400'}`} />
-                  <span className="text-xs font-semibold text-neutral-900">Daily Discipline</span>
+                  <Sun className={`w-4 h-4 ${cadence === 'daily' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-400'}`} />
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">Daily Discipline</span>
                 </div>
-                <p className="text-[11px] text-neutral-500 mt-1 leading-snug">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
                   Targeted every single day. Daily streaks and progress tracked each day.
                 </p>
               </button>
@@ -200,15 +212,15 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                 onClick={() => setCadence('weekly')}
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   cadence === 'weekly'
-                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
-                    : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                    ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20'
+                    : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 ${cadence === 'weekly' ? 'text-indigo-600' : 'text-neutral-400'}`} />
-                  <span className="text-xs font-semibold text-neutral-900">Weekly Special Activity</span>
+                  <Calendar className={`w-4 h-4 ${cadence === 'weekly' ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-400'}`} />
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">Weekly Special Activity</span>
                 </div>
-                <p className="text-[11px] text-neutral-500 mt-1 leading-snug">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
                   Special activity once a week (e.g., Weekly Retrospective, Deep Clean, Long Run).
                 </p>
               </button>
@@ -218,7 +230,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
           {/* 2. Discipline Name & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-700 block">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block">
                 Discipline Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -228,46 +240,46 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                   setName(e.target.value);
                   setError('');
                 }}
-                placeholder="e.g. System Architecture, Reading"
-                className="w-full px-3 py-2 rounded-lg border border-neutral-300 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g. Coding, Workout"
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-700 block">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block">
                 Category
               </label>
               <input
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Engineering, Fitness, Review"
-                className="w-full px-3 py-2 rounded-lg border border-neutral-300 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g. Technical, Fitness, Creative"
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
 
           {/* 3. Description / Tagline */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-neutral-700 block">
+            <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block">
               Short Description / Purpose
             </label>
             <input
               type="text"
               value={tagline}
               onChange={(e) => setTagline(e.target.value)}
-              placeholder="e.g. 1 hour of deep problem solving & system trade-offs"
-              className="w-full px-3 py-2 rounded-lg border border-neutral-300 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g. 1 hour of focused coding & algorithms"
+              className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* 4. Target Duration & Quick Duration Buttons */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-neutral-700">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                 {cadence === 'daily' ? 'Daily Target Duration' : 'Weekly Session Target Duration'}
               </label>
-              <span className="text-xs font-mono font-bold text-neutral-900">
+              <span className="text-xs font-mono font-bold text-neutral-900 dark:text-neutral-100">
                 {formatMinutes(targetMinutes)} ({targetMinutes} min)
               </span>
             </div>
@@ -279,7 +291,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                   value={durationStr}
                   onChange={(e) => setDurationStr(e.target.value)}
                   placeholder="e.g. 1:00 or 60"
-                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-neutral-300 text-xs font-mono text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
                 <Clock className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-2.5" />
               </div>
@@ -292,7 +304,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                     key={mins}
                     type="button"
                     onClick={() => setDurationStr(formatMinutes(mins, 'clock'))}
-                    className="px-2.5 py-1 rounded-md border border-neutral-200 hover:bg-neutral-50 text-xs font-mono text-neutral-700 cursor-pointer whitespace-nowrap"
+                    className="px-2.5 py-1 rounded-md border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-mono text-neutral-700 dark:text-neutral-300 cursor-pointer whitespace-nowrap"
                   >
                     {formatMinutes(mins)}
                   </button>
@@ -305,7 +317,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             {/* Color Palette */}
             <div>
-              <label className="text-xs font-semibold text-neutral-700 block mb-2">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-2">
                 Color Tag
               </label>
               <div className="flex items-center gap-2 flex-wrap">
@@ -316,7 +328,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                     onClick={() => setColor(c.hex)}
                     title={c.name}
                     className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform hover:scale-110 cursor-pointer ${
-                      color === c.hex ? 'ring-2 ring-offset-2 ring-neutral-900' : ''
+                      color === c.hex ? 'ring-2 ring-offset-2 ring-neutral-900 dark:ring-white' : ''
                     }`}
                     style={{ backgroundColor: c.hex }}
                   >
@@ -328,7 +340,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
 
             {/* Icon Picker */}
             <div>
-              <label className="text-xs font-semibold text-neutral-700 block mb-2">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-2">
                 Icon Symbol
               </label>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -340,8 +352,8 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                     title={ic.label}
                     className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                       icon === ic.id
-                        ? 'bg-neutral-900 text-white border-neutral-900'
-                        : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
+                        ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 border-neutral-900 dark:border-neutral-100 shadow-xs'
+                        : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
                     }`}
                   >
                     <DisciplineIcon name={ic.id} className="w-4 h-4" />
@@ -352,7 +364,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
           </div>
 
           {/* Submit Footer */}
-          <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3 flex-wrap">
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               {isEditing && onArchive && currentDisc && (
                 <button
@@ -361,17 +373,17 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                     onArchive(currentDisc.id, !currentDisc.isArchived);
                     onClose();
                   }}
-                  className="px-3 py-2 rounded-lg text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200"
+                  className="px-3 py-2 rounded-lg text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200 dark:border-neutral-700"
                   title={currentDisc.isArchived ? "Restore to active roster" : "Archive without deleting past historical records"}
                 >
                   {currentDisc.isArchived ? (
                     <>
-                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                      <RotateCcw className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span>Unarchive</span>
                     </>
                   ) : (
                     <>
-                      <Archive className="w-3.5 h-3.5 text-amber-600" />
+                      <Archive className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                       <span>Archive (Safe)</span>
                     </>
                   )}
@@ -382,7 +394,7 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDeleteConfirmOpen(true)}
-                  className="px-3 py-2 rounded-lg text-rose-600 hover:text-rose-800 hover:bg-rose-50 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-2 rounded-lg text-rose-600 hover:text-rose-800 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                   title="Permanently remove discipline"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -395,13 +407,13 @@ export const AddDisciplineModal: React.FC<AddDisciplineModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-neutral-200 hover:bg-neutral-50 text-xs font-medium text-neutral-700 cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-neutral-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-neutral-900 hover:bg-black dark:bg-neutral-100 dark:hover:bg-white text-white dark:text-neutral-900 text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>{isEditing ? 'Save Changes' : 'Create Activity Discipline'}</span>

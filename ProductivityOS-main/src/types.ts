@@ -20,6 +20,7 @@ export interface ActivityDiscipline {
 export interface UserSettings {
   disciplines: ActivityDiscipline[];
   theme: 'light' | 'dark';
+  consistencyThreshold?: number; // Minimum % for consistency streak (default 80)
   connectedSpreadsheetId?: string;
   connectedSpreadsheetUrl?: string;
 
@@ -30,6 +31,41 @@ export interface UserSettings {
   editingTarget?: number;
   workoutTarget?: number;
 }
+
+export interface StreakInfo {
+  current: number;
+  longest: number;
+  isActiveToday: boolean;
+  isMaintained: boolean;
+  explanation: string;
+}
+
+export interface HeatmapDayData {
+  date: string;
+  dayOfWeek: number;
+  month: number;
+  dayOfMonth: number;
+  year: number;
+  totalActual: number;
+  totalTarget: number;
+  overallPct: number;
+  level: 0 | 1 | 2 | 3 | 4 | 5;
+  hasRecord: boolean;
+  isFuture: boolean;
+  isToday: boolean;
+  activities: { id: string; name: string; minutes: number; color: string }[];
+}
+
+export type TimeFilterPeriod =
+  | 'today'
+  | '7d'
+  | '14d'
+  | '30d'
+  | 'this_week'
+  | 'this_month'
+  | 'this_year'
+  | 'all'
+  | 'custom';
 
 export interface DailyRecord {
   id: string; // e.g. "2026-09-19"
@@ -52,6 +88,8 @@ export interface DailyRecord {
   overallPct: number;  // balanced overall percentage
   status: 'COMPLETED' | 'GOOD' | 'PARTIAL' | 'LOW';
   notes: string;
+  createdAt?: string;
+  updatedAt?: string;
 
   // Legacy fields for backward compatibility if needed
   codingTarget?: number;
@@ -91,6 +129,9 @@ export interface SheetArchitectSpec {
 export type ViewTab =
   | 'dashboard'
   | 'tracker'
+  | 'analytics'
+  | 'history'
+  | 'activities'
   | 'weekly'
   | 'monthly'
   | 'yearly'
